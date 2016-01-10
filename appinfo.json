@@ -1,0 +1,32 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "cmorison@gmail.com",
+    "longName": "Job Timer",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/menulogo.png",
+                "menuIcon": true,
+                "name": "IMAGE_MENU_ICON",
+                "type": "png"
+            },
+            {
+                "file": "images/icons.png",
+                "name": "IMAGE_ICON_MATRIX",
+                "type": "png"
+            }
+        ]
+    },
+    "sdkVersion": "2",
+    "shortName": "Job Timer",
+    "uuid": "18560a47-2011-431b-8da4-844f7d38d992",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
