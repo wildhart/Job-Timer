@@ -95,8 +95,6 @@ void jobs_list_load(uint8_t first_key, const uint8_t version) {
     new_job = malloc(sizeof(Job));
     persist_read_data(first_key, new_job, sizeof(Job));
     
-    //new_job.Seconds+=24*3600;
-    
     new_job_ptr = malloc(sizeof(Job_ptr));
     new_job_ptr->Job = new_job;
     new_job_ptr->Next_ptr = NULL;
