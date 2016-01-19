@@ -60,7 +60,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
   switch (cell_index->row) {
     case MENU_JOB: 
       if (timer.Active) {
-        jobs_stop_timer_and_save();
+        jobs_stop_timer();
         tick_timer_service_subscribe(MINUTE_UNIT, handle_ticktimer_tick);
         if (timer.Job == job_index) return menu_layer_reload_data(s_menulayer);
       }

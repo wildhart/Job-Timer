@@ -6,9 +6,10 @@
 #include "job_menu.h"
 #include "job_adjust.h"
 #include "settings_menu.h"
+#include "update.h"
 #include "tertiary_text.h"
 
-#define DISABLE_LOGGING false
+#define DISABLE_LOGGING true
 
 #if DISABLE_LOGGING
 #define LOG(...)
@@ -54,6 +55,7 @@
 #define ICON_RECT_SETTINGS    (GRect) { { 32, 32 }, { 16, 16 } }
 #define ICON_RECT_MINUS       (GRect) { { 16, 48 }, { 16, 16 } }
 #define ICON_RECT_CLOCK       (GRect) { { 32, 16 }, { 16, 16 } }
+#define ICON_RECT_EXPORT      (GRect) { { 32, 48 }, { 16, 16 } }
 
 extern GBitmap *bitmap_matrix;
 extern GBitmap *bitmap_pause;
@@ -66,6 +68,7 @@ extern GBitmap *bitmap_adjust;
 extern GBitmap *bitmap_reset;
 extern GBitmap *bitmap_minus;
 extern GBitmap *bitmap_tick;
+extern GBitmap *bitmap_export;
 
 typedef struct {
   bool Active;
@@ -81,7 +84,7 @@ extern Timer timer;
 #define STORAGE_KEY_SETTINGS   3
 #define STORAGE_KEY_FIRST_JOB 100
 
-#define CURRENT_STORAGE_VERSION 1
+#define CURRENT_STORAGE_VERSION 2
 
 typedef struct {
   bool Auto_sort;
@@ -91,5 +94,6 @@ typedef struct {
 } Settings;
 
 extern Settings settings;
+extern bool export_after_save;
 
-void main_save_data(void);
+void main_save_data();

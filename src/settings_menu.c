@@ -1,4 +1,7 @@
 #include "main.h"
+
+bool settings_changed;
+
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
 static MenuLayer *s_menulayer;
@@ -74,16 +77,17 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
   switch (cell_index->row) {
     case MENU_SHOW_CLOCK:
       main_menu_toggle_clock();
+      settings_changed=true;
       menu_layer_reload_data(s_menulayer);
       break;
     case MENU_AUTO_SORT:
       settings.Auto_sort = !settings.Auto_sort;
-      persist_write_data(STORAGE_KEY_SETTINGS, &settings, sizeof(Settings));
+      settings_changed=true;
       menu_layer_reload_data(s_menulayer);
       break;
     case MENU_HRS_DAY: 
       settings.Hrs_day_x10 = ((settings.Hrs_day_x10 + 5 - 1) % 240) + 1 ;
-      persist_write_data(STORAGE_KEY_SETTINGS, &settings, sizeof(Settings));
+      settings_changed=true;
       menu_layer_reload_data(s_menulayer);
       break;
   }
@@ -92,7 +96,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 static void menu_select_long_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
   if (cell_index->row == MENU_HRS_DAY) {
       settings.Hrs_day_x10 = ((settings.Hrs_day_x10 + 40 - 1) % 240) + 1 ;
-      persist_write_data(STORAGE_KEY_SETTINGS, &settings, sizeof(Settings));
+      settings_changed=true;
       menu_layer_reload_data(s_menulayer);
   }
 }
@@ -103,6 +107,9 @@ static void menu_select_long_callback(MenuLayer *menu_layer, MenuIndex *cell_ind
 
 static void handle_window_unload(Window* window) {
   destroy_ui();
+  if (settings_changed) {
+    main_save_data();
+  }
 }
 
 void settings_menu_show(void) {

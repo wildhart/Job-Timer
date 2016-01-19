@@ -73,7 +73,8 @@ enum { // main menu structure
   MENU_OTHER_ADD=MENU_SECTION_OTHER*100,
   MENU_OTHER_OPTIONS,
   MENU_OTHER_RESET_ALL,
-  NUM_MENU_ITEMS_OTHER=3
+  MENU_OTHER_EXPORT,
+  NUM_MENU_ITEMS_OTHER=4
 };
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
@@ -134,7 +135,8 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
             strncpy(last_reset_string, "Never reset", MAX_CLOCK_LENGTH);
           }
           menu_cell_draw_other(ctx, cell_layer, "Reset All", last_reset_string, bitmap_reset);
-        break;
+          break;
+        case MENU_OTHER_EXPORT: menu_cell_draw_other(ctx, cell_layer, "Export/Donate", NULL, bitmap_export); break;
       }
   }
 }
@@ -143,9 +145,13 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
   switch (cell_index->section) {
     case MENU_SECTION_JOBS:
       if (timer.Active) {
-        jobs_stop_timer_and_save();
+        jobs_stop_timer();
         tick_timer_service_subscribe(MINUTE_UNIT, handle_ticktimer_tick);
-        if (timer.Job == cell_index->row) return menu_layer_reload_data(s_menulayer);
+        if (timer.Job == cell_index->row) {
+          main_save_data();
+          menu_layer_reload_data(s_menulayer);
+          return;
+        }
       }
       timer.Active = true;
       timer.Start = time(NULL);
@@ -166,7 +172,17 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
           settings.Last_reset=time(NULL);
           for(uint8_t i=0; i<jobs_count; i++) jobs_reset_and_save(i);
           menu_layer_reload_data(s_menulayer);
-        break;
+          break;
+        case MENU_OTHER_EXPORT:
+          if (timer.Active) {
+            jobs_stop_timer();
+            timer.Active = true;
+            timer.Start = time(NULL);
+            tick_timer_service_subscribe(MINUTE_UNIT + SECOND_UNIT, handle_ticktimer_tick);
+          }
+          export_after_save=true;
+          main_save_data();
+          break;
       }
   }
 }
@@ -211,4 +227,8 @@ void main_menu_show(void) {
 
 void main_menu_hide(void) {
   window_stack_remove(s_window, ANIMATED);
+}
+
+void main_menu_highlight_top(void) {
+  menu_layer_set_selected_index(s_menulayer, MenuIndex(0,0), MenuRowAlignTop, ANIMATED);
 }

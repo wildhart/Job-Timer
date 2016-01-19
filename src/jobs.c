@@ -3,7 +3,7 @@
 #define JOB_NAME_LENGTH 24
 typedef struct {
   char Name[JOB_NAME_LENGTH];
-  uint32_t Seconds;
+  time_t Seconds;
 } Job;
 
 typedef struct Job_ptr {
@@ -18,7 +18,7 @@ uint8_t jobs_count=0;
 // JOB LIST FUNCTIONS
 // *****************************************************************************************************
 
-static void jobs_list_append_job(const char* name, const uint32_t seconds) {
+static void jobs_list_append_job(const char* name, const time_t seconds) {
   Job* new_job = malloc(sizeof(Job));
   Job_ptr* new_job_ptr = malloc(sizeof(Job_ptr));
   
@@ -35,7 +35,6 @@ static void jobs_list_append_job(const char* name, const uint32_t seconds) {
     first_job_ptr = new_job_ptr;
   }
   jobs_count++;
-  main_save_data();
 }
 
 void jobs_list_save(uint8_t first_key) {
@@ -46,6 +45,40 @@ void jobs_list_save(uint8_t first_key) {
   }
   // if we've delete a job then need to delete the saved version or it will come back!
   persist_delete(first_key);
+}
+
+void jobs_list_write_dict(DictionaryIterator *iter, uint8_t first_key) {
+  Job_ptr* job_ptr = first_job_ptr;
+  Job * job;
+  char buffer[JOB_NAME_LENGTH+30];
+  while (job_ptr) {
+    job=job_ptr->Job;
+    snprintf(buffer,JOB_NAME_LENGTH+30,"%s|%ld",job->Name, job->Seconds);
+    dict_write_cstring(iter, first_key++, buffer);
+    job_ptr=job_ptr->Next_ptr;
+  }
+}
+
+void jobs_list_read_dict(DictionaryIterator *iter, uint8_t first_key, const uint8_t version) {
+  if (first_job_ptr!=NULL) return;
+  
+  Tuple *tuple_t;
+  uint8_t fields=2;
+  char buffer[fields][JOB_NAME_LENGTH];
+  
+  while ((tuple_t=dict_find(iter, first_key++))) {
+    char *source = tuple_t->value->cstring;
+    for (int c=0; c<fields; c++) {
+      uint d=0; // destination offset
+      while (*source && *source!='|' && d<JOB_NAME_LENGTH) {
+        buffer[c][d++]=*source++;
+      }
+      while (*source && *source!='|') source++;
+      buffer[c][d]=0;
+      source++;
+    }
+    jobs_list_append_job(buffer[0], atoi(buffer[1]));
+  }
 }
 
 void jobs_list_load2(uint8_t first_key, const uint8_t version) {
@@ -110,8 +143,8 @@ static void callback(const char* result, size_t result_length, void* extra) {
     jobs_list_append_job(result, 0);  
   } else {
     snprintf(jobs_list_get_index(index)->Name,JOB_NAME_LENGTH, result);
-    main_save_data();
   }
+  main_save_data();
   main_menu_update();
 }
 
@@ -121,6 +154,17 @@ void jobs_add_job() {
 
 void jobs_rename_job(uint8_t index) {
   tertiary_text_prompt(jobs_get_job_name(index), callback, (void*) (int) index);
+}
+
+void jobs_delete_all_jobs(void) {
+  Job_ptr* job_ptr = first_job_ptr;
+  while (first_job_ptr) {
+    Job_ptr * next_job=first_job_ptr->Next_ptr;
+    free(first_job_ptr->Job);
+    free(first_job_ptr);
+    first_job_ptr=next_job;
+  }
+  jobs_count=0;
 }
 
 void jobs_delete_job_and_save(uint8_t index) {
@@ -161,12 +205,12 @@ char* jobs_get_job_name(uint8_t index) {
 uint32_t jobs_get_job_seconds(uint8_t index) {
   Job* job=jobs_list_get_index(index);
   if (!job) return 0;
-  int seconds = job->Seconds;
+  time_t seconds = job->Seconds;
   if (timer.Active && timer.Job==index) seconds += time(NULL) - timer.Start;
   return seconds;
 }
 
-void jobs_set_job_seconds(uint8_t index, uint32_t seconds) {
+void jobs_set_job_seconds(uint8_t index, time_t seconds) {
   Job* job=jobs_list_get_index(index);
   if (!job) return;
   job->Seconds=seconds;
@@ -178,23 +222,22 @@ void jobs_set_job_seconds(uint8_t index, uint32_t seconds) {
 char clock_buffer[MAX_CLOCK_LENGTH];
 
 char* jobs_get_job_clock_as_text(uint8_t index, bool days) {
-  int seconds = jobs_get_job_seconds(index);
+  time_t seconds = jobs_get_job_seconds(index);
   
   uint8_t len = 0;
   if (seconds >= settings.Hrs_day_x10 * 360) { // 3600 seconds in an hour, but setting value is x 10
-    len+=snprintf(clock_buffer,MAX_CLOCK_LENGTH,"%dd ",(seconds/(settings.Hrs_day_x10 * 360)) /*days*/);
+    len+=snprintf(clock_buffer,MAX_CLOCK_LENGTH,"%ldd ",(seconds/(settings.Hrs_day_x10 * 360)) /*days*/);
     seconds %= settings.Hrs_day_x10 * 360;
   }
-  snprintf(clock_buffer+len,MAX_CLOCK_LENGTH-len,"%d:%02d:%02d",(seconds/3600) /*hours*/,(seconds / 60) % 60 /*mins*/,seconds % 60 /*secs*/);
+  snprintf(clock_buffer+len,MAX_CLOCK_LENGTH-len,"%ld:%02ld:%02ld",(seconds/3600) /*hours*/,(seconds / 60) % 60 /*mins*/,seconds % 60 /*secs*/);
   return clock_buffer;
 }
 
-void jobs_stop_timer_and_save() {
+void jobs_stop_timer() {
   if (timer.Active) {
     Job* job=jobs_list_get_index(timer.Job);
     job->Seconds += time(NULL) - timer.Start;
     timer.Active=0;
-    main_save_data();
   }
 }
 

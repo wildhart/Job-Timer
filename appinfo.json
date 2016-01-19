@@ -1,7 +1,18 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "KEY_APP_VERSION": 7,
+        "KEY_AUTO_SORT": 4,
+        "KEY_CONFIG_DATA": 0,
+        "KEY_EXPORT": 6,
+        "KEY_HRS_PER_DAY": 5,
+        "KEY_JOBS": 100,
+        "KEY_LAST_RESET": 8,
+        "KEY_SHOW_CLOCK": 3,
+        "KEY_TIMER": 2,
+        "KEY_VERSION": 1
+    },
     "capabilities": [
-        ""
+        "configurable"
     ],
     "companyName": "cmorison@gmail.com",
     "longName": "Job Timer",
@@ -23,9 +34,9 @@
     },
     "sdkVersion": "2",
     "shortName": "Job Timer",
-    "uuid": "18560a47-2011-431b-8da4-844f7d38d992",
+    "uuid": "4d925516-231c-4b01-a08f-6df4f6ac81e6",
     "versionCode": 1,
-    "versionLabel": "1.0",
+    "versionLabel": "1.1",
     "watchapp": {
         "watchface": false
     }
