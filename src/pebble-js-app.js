@@ -43,7 +43,8 @@ function showConfiguration() {
     config+="&hrs_per_day="+settings.KEY_HRS_PER_DAY/10;
     
     var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
-    d.setUTCSeconds(settings.KEY_LAST_RESET + d.getTimezoneOffset()*60);
+    d.setUTCSeconds(settings.KEY_LAST_RESET);
+    d.setUTCSeconds(d.getTimezoneOffset()*60);
     var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     config+="&last_reset="+encodeURIComponent(days[d.getDay()]+" "+d.getFullYear()+"/"+padZero(d.getMonth()+1)+"/"+padZero(d.getDate())+" "+padZero(d.getHours())+":"+padZero(d.getMinutes()));
     
@@ -95,3 +96,15 @@ Pebble.addEventListener('webviewclosed', function(e) {
     console.log('Send failed!');
   });
 });
+
+//http://stackoverflow.com/questions/11887934/check-if-daylight-saving-time-is-in-effect-and-if-it-is-for-how-many-hours
+Date.prototype.stdTimezoneOffset = function() {
+  var jan = new Date(this.getFullYear(), 0, 1);
+  var jul = new Date(this.getFullYear(), 6, 1);
+  return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+}
+
+Date.prototype.dst_mins = function() {
+  console.log(this.stdTimezoneOffset() - this.getTimezoneOffset());
+  return this.stdTimezoneOffset() - this.getTimezoneOffset();
+}
