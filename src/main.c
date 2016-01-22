@@ -103,6 +103,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
       stored_version = CURRENT_STORAGE_VERSION;
     }
     main_save_data();
+  } else if (inbox_timestamp < data_timestamp) {
+    send_settings_to_phone();
   }
   
   LOG("Inbox processed.");

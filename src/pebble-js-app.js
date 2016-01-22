@@ -102,15 +102,3 @@ Pebble.addEventListener('webviewclosed', function(e) {
     console.log('Send failed!');
   });
 });
-
-//http://stackoverflow.com/questions/11887934/check-if-daylight-saving-time-is-in-effect-and-if-it-is-for-how-many-hours
-Date.prototype.stdTimezoneOffset = function() {
-  var jan = new Date(this.getFullYear(), 0, 1);
-  var jul = new Date(this.getFullYear(), 6, 1);
-  return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
-}
-
-Date.prototype.dst_mins = function() {
-  console.log(this.stdTimezoneOffset() - this.getTimezoneOffset());
-  return this.stdTimezoneOffset() - this.getTimezoneOffset();
-}
