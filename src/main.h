@@ -82,6 +82,7 @@ extern Timer timer;
 #define STORAGE_KEY_VERSION    1
 #define STORAGE_KEY_TIMER      2
 #define STORAGE_KEY_SETTINGS   3
+#define STORAGE_KEY_TIMESTAMP  4
 #define STORAGE_KEY_FIRST_JOB 100
 
 #define CURRENT_STORAGE_VERSION 2

@@ -23,6 +23,7 @@ GBitmap *bitmap_export;
 
 static bool JS_ready = false;
 static bool data_loaded_from_watch = false;
+static uint32_t data_timestamp = 0;
 uint8_t stored_version=0;
 bool export_after_save=false;
 
@@ -39,6 +40,7 @@ bool export_after_save=false;
 #define KEY_EXPORT       6
 #define KEY_APP_VERSION  7
 #define KEY_LAST_RESET   8
+#define KEY_TIMESTAMP    9
 #define KEY_JOBS       100
 
 static void send_settings_to_phone() {
@@ -73,32 +75,36 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   JS_ready = true;
   Tuple *tuple_t;
   bool new_data_from_config_page = dict_find(iter, KEY_CONFIG_DATA);
-  
-  tuple_t=dict_find(iter, KEY_VERSION);     stored_version = (tuple_t) ? tuple_t->value->int32 : 1;
-  tuple_t=dict_find(iter, KEY_SHOW_CLOCK);  if (tuple_t && settings.Show_clock != (tuple_t->value->int8 > 0) ) main_menu_toggle_clock();
-  tuple_t=dict_find(iter, KEY_AUTO_SORT);   if (tuple_t) settings.Auto_sort = tuple_t->value->int8 > 0;
-  tuple_t=dict_find(iter, KEY_HRS_PER_DAY); if (tuple_t) settings.Hrs_day_x10 = tuple_t->value->int32;
-  tuple_t=dict_find(iter, KEY_LAST_RESET); if (tuple_t) settings.Last_reset = tuple_t->value->int32;
-  
-  tuple_t=dict_find(iter,KEY_TIMER);
-  if (tuple_t) {
-    memcpy(&timer, tuple_t->value->data, tuple_t->length);
-    tick_timer_service_subscribe(MINUTE_UNIT + SECOND_UNIT, handle_ticktimer_tick);
-  } else {
-    timer.Active = false;
+  tuple_t= dict_find(iter, KEY_TIMESTAMP);
+  uint32_t inbox_timestamp = tuple_t ? tuple_t->value->int32 : 0;
+
+  if (new_data_from_config_page || inbox_timestamp > data_timestamp)  {
+    data_timestamp=inbox_timestamp;
+    tuple_t=dict_find(iter, KEY_VERSION);     stored_version = (tuple_t) ? tuple_t->value->int32 : 1;
+    tuple_t=dict_find(iter, KEY_SHOW_CLOCK);  if (tuple_t && settings.Show_clock != (tuple_t->value->int8 > 0) ) main_menu_toggle_clock();
+    tuple_t=dict_find(iter, KEY_AUTO_SORT);   if (tuple_t) settings.Auto_sort = tuple_t->value->int8 > 0;
+    tuple_t=dict_find(iter, KEY_HRS_PER_DAY); if (tuple_t) settings.Hrs_day_x10 = tuple_t->value->int32;
+    tuple_t=dict_find(iter, KEY_LAST_RESET); if (tuple_t) settings.Last_reset = tuple_t->value->int32;
+    
+    tuple_t=dict_find(iter,KEY_TIMER);
+    if (tuple_t) {
+      memcpy(&timer, tuple_t->value->data, tuple_t->length);
+      tick_timer_service_subscribe(MINUTE_UNIT + SECOND_UNIT, handle_ticktimer_tick);
+    } else {
+      timer.Active = false;
+    }
+    jobs_delete_all_jobs();
+    jobs_list_read_dict(iter, KEY_JOBS, stored_version);
+    main_menu_update();
+    main_menu_highlight_top();
+    if (stored_version < CURRENT_STORAGE_VERSION) {
+      update_show(stored_version);
+      stored_version = CURRENT_STORAGE_VERSION;
+    }
+    main_save_data();
   }
-  if (new_data_from_config_page) jobs_delete_all_jobs();
-  jobs_list_read_dict(iter, KEY_JOBS, stored_version);
   
   LOG("Inbox processed.");
-  main_menu_update();
-  main_menu_highlight_top();
-  if (new_data_from_config_page) main_save_data();
-  if (stored_version < CURRENT_STORAGE_VERSION) {
-    update_show(stored_version);
-    stored_version = CURRENT_STORAGE_VERSION;
-    send_settings_to_phone();
-  }
 }
 
 // *****************************************************************************************************
@@ -108,6 +114,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 void main_save_data() {
   data_loaded_from_watch = true;
   persist_write_int(STORAGE_KEY_VERSION, CURRENT_STORAGE_VERSION);
+  data_timestamp=time(NULL);
+  persist_write_int(STORAGE_KEY_TIMESTAMP, data_timestamp);
   if (timer.Active) {
     persist_write_data(STORAGE_KEY_TIMER, &timer, sizeof(Timer));
   } else {
@@ -128,6 +136,7 @@ static void main_load_data(void) {
   stored_version = persist_read_int(STORAGE_KEY_VERSION); // defaults to 0 if key is missing
   if (stored_version) {
     data_loaded_from_watch = true;
+    if (persist_exists(STORAGE_KEY_TIMESTAMP)) data_timestamp=persist_read_int(STORAGE_KEY_TIMESTAMP);
     persist_read_data(STORAGE_KEY_TIMER, &timer, sizeof(Timer));
     if (persist_exists(STORAGE_KEY_SETTINGS)) {
       persist_read_data(STORAGE_KEY_SETTINGS, &settings, sizeof(Settings));

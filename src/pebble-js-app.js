@@ -5,7 +5,11 @@ Pebble.addEventListener('ready', function() {
   var settings=localStorage.getItem("settings");
   // settings='{"101":"B|0","KEY_VERSION":1,"KEY_SHOW_CLOCK":1,"KEY_AUTO_SORT":0,"KEY_HRS_PER_DAY":80,"KEY_JOBS":"A|0"';
   var dict=settings ? JSON.parse(settings) : {};
-  console.log(settings);
+  if (!dict.KEY_TIMESTAMP) { 
+    var d=new Date();
+    dict.KEY_TIMESTAMP = Math.floor(d.getTime()/1000 - d.getTimezoneOffset()*60);
+  }
+  console.log(JSON.stringify(dict));
   Pebble.sendAppMessage(dict, function() {
     console.log('Send successful: ' + JSON.stringify(dict));
   }, function() {
@@ -76,6 +80,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
   dict.KEY_AUTO_SORT    = configData.auto_sort ? 1 : 0;  // Send a boolean as an integer
   dict.KEY_HRS_PER_DAY  = configData.hrs_per_day * 10; 
   dict.KEY_VERSION = configData.data_version;
+  var d=new Date();
+  dict.KEY_TIMESTAMP = Math.floor(d.getTime()/1000 - d.getTimezoneOffset()*60);
   
   var job=0;
   while (configData["job_"+job]) {

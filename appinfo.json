@@ -9,6 +9,7 @@
         "KEY_LAST_RESET": 8,
         "KEY_SHOW_CLOCK": 3,
         "KEY_TIMER": 2,
+        "KEY_TIMESTAMP": 9,
         "KEY_VERSION": 1
     },
     "capabilities": [
@@ -36,7 +37,7 @@
     "shortName": "Job Timer",
     "uuid": "18560a47-2011-431b-8da4-844f7d38d992",
     "versionCode": 1,
-    "versionLabel": "1.1",
+    "versionLabel": "1.2",
     "watchapp": {
         "watchface": false
     }
