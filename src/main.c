@@ -51,6 +51,7 @@ static void send_settings_to_phone() {
   
   dict_write_cstring(iter, KEY_APP_VERSION, app_version);
   dummy_int=CURRENT_STORAGE_VERSION; dict_write_int(iter, KEY_VERSION, &dummy_int, sizeof(int), true);
+  dummy_int=data_timestamp;          dict_write_int(iter, KEY_TIMESTAMP, &dummy_int, sizeof(int), true);
   dummy_int=settings.Show_clock;     dict_write_int(iter, KEY_SHOW_CLOCK, &dummy_int, sizeof(int), true);
   dummy_int=settings.Auto_sort;      dict_write_int(iter, KEY_AUTO_SORT, &dummy_int, sizeof(int), true);
   dummy_int=settings.Hrs_day_x10;    dict_write_int(iter, KEY_HRS_PER_DAY, &dummy_int, sizeof(int), true);
