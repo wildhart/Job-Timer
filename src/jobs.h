@@ -1,6 +1,8 @@
 #pragma once
 
 extern uint8_t jobs_count;
+#define MAX_LOG_LENGTH 50
+extern char job_log[MAX_LOG_LENGTH];
 
 void jobs_list_save(uint8_t first_key);
 void jobs_list_load(uint8_t first_key, const uint8_t version);

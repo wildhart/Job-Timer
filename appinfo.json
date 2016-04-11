@@ -7,6 +7,7 @@
         "KEY_HRS_PER_DAY": 5,
         "KEY_JOBS": 100,
         "KEY_LAST_RESET": 8,
+        "KEY_LOG": 10,
         "KEY_SHOW_CLOCK": 3,
         "KEY_TIMER": 2,
         "KEY_TIMESTAMP": 9,
@@ -37,7 +38,7 @@
     "shortName": "Job Timer",
     "uuid": "18560a47-2011-431b-8da4-844f7d38d992",
     "versionCode": 1,
-    "versionLabel": "1.2",
+    "versionLabel": "1.3",
     "watchapp": {
         "watchface": false
     }

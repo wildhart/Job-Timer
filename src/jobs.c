@@ -13,6 +13,7 @@ typedef struct Job_ptr {
 
 static Job_ptr* first_job_ptr=NULL;
 uint8_t jobs_count=0;
+char job_log[MAX_LOG_LENGTH];
 
 // *****************************************************************************************************
 // JOB LIST FUNCTIONS
@@ -81,13 +82,13 @@ void jobs_list_read_dict(DictionaryIterator *iter, uint8_t first_key, const uint
   }
 }
 
-void jobs_list_load2(uint8_t first_key, const uint8_t version) {
+void jobs_list_load(uint8_t first_key, const uint8_t version) {
   jobs_list_append_job("Meetings",(uint32_t) 8*3600+2*60+23);
   jobs_list_append_job("Small talk",4*3600+1*60+123);
   jobs_list_append_job("Actual work",0*3600+1*60+123);
 }
 
-void jobs_list_load(uint8_t first_key, const uint8_t version) {
+void jobs_list_load2(uint8_t first_key, const uint8_t version) {
   Job* new_job;
   Job_ptr* new_job_ptr;
   Job_ptr* prev_job_ptr=NULL;
@@ -136,7 +137,6 @@ void jobs_list_move_to_top(uint8_t index) {
 static void callback(const char* result, size_t result_length, void* extra) {
 	// Do something with result
   int index = (int) extra;
-  LOG("%d",index);
   if (index==-1) {
     jobs_list_append_job(result, 0);  
   } else {
@@ -234,8 +234,15 @@ char* jobs_get_job_clock_as_text(uint8_t index, bool days) {
 void jobs_stop_timer() {
   if (timer.Active) {
     Job* job=jobs_list_get_index(timer.Job);
-    job->Seconds += time(NULL) - timer.Start;
+    time_t now=time(NULL);
+    job->Seconds += now - timer.Start;
     timer.Active=0;
+    
+    uint8_t len = 0;
+    len=snprintf(job_log, MAX_LOG_LENGTH,"%d|",timer.Job);
+    len+=strftime(job_log+len, MAX_LOG_LENGTH-len,"%Y-%m-%dT%T|",localtime(&timer.Start));
+    strftime(job_log+len, MAX_LOG_LENGTH-len,"%Y-%m-%dT%T",localtime(&now));
+    LOG(job_log);
   }
 }
 

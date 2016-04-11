@@ -64,7 +64,6 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
         tick_timer_service_subscribe(MINUTE_UNIT, handle_ticktimer_tick);
         if (timer.Job == job_index) return menu_layer_reload_data(s_menulayer);
       }
-      LOG("Starting timer '%s'", jobs_get_job_name(cell_index->row));
       timer.Active = true;
       timer.Start = time(NULL);
       timer.Job = job_index;

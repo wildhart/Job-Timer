@@ -41,6 +41,7 @@ bool export_after_save=false;
 #define KEY_APP_VERSION  7
 #define KEY_LAST_RESET   8
 #define KEY_TIMESTAMP    9
+#define KEY_LOG         10
 #define KEY_JOBS       100
 
 static void send_settings_to_phone() {
@@ -59,6 +60,11 @@ static void send_settings_to_phone() {
   
   if (timer.Active) dict_write_data(iter, KEY_TIMER, (void*) &timer, sizeof(timer));
   jobs_list_write_dict(iter, KEY_JOBS);
+  
+  if (*job_log) {
+    dict_write_cstring(iter, KEY_LOG, job_log);
+    *job_log=0;
+  }
 
   if (export_after_save) {
     dummy_int=true;
